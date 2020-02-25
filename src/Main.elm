@@ -11,8 +11,21 @@ type Msg
     = DoNothing
 
 
+type UserStatus
+    = Offline
+    | Online
+
+
+type alias User =
+    { fullName : String
+    , username : String
+    , status : UserStatus
+    }
+
+
 type Conversation
     = Channel String
+    | DirectMessage User
 
 
 type alias Model =
@@ -30,6 +43,11 @@ sidebarFontColor =
     Element.rgb255 195 179 195
 
 
+onlineGreen : Element.Color
+onlineGreen =
+    Element.rgb255 14 105 72
+
+
 sidebarTitle : String -> Element Msg
 sidebarTitle title =
     Element.el
@@ -38,11 +56,40 @@ sidebarTitle title =
 
 
 channelsList : List Conversation -> Element Msg
-channelsList all =
-    all
+channelsList conversations =
+    conversations
         |> List.map
-            (\(Channel channel) ->
-                Element.row [ Element.pointer ] [ Element.el [ Element.alpha 0.7 ] (Element.text "# "), Element.text channel ]
+            (\conversation ->
+                case conversation of
+                    Channel channel ->
+                        Element.row [ Element.pointer ] [ Element.el [ Element.alpha 0.7 ] (Element.text "# "), Element.text channel ]
+
+                    _ ->
+                        Element.none
+            )
+        |> Element.column [ Element.spacing 5 ]
+
+
+directMessagesList : List Conversation -> Element Msg
+directMessagesList conversations =
+    conversations
+        |> List.map
+            (\conversation ->
+                case conversation of
+                    DirectMessage user ->
+                        let
+                            statusIndicator =
+                                case user.status of
+                                    Online ->
+                                        Element.el [ Element.Font.color onlineGreen ] (Element.text "●")
+
+                                    Offline ->
+                                        Element.text "○"
+                        in
+                        Element.row [ Element.pointer ] [ statusIndicator, Element.text " ", Element.text user.username ]
+
+                    _ ->
+                        Element.none
             )
         |> Element.column [ Element.spacing 5 ]
 
@@ -85,8 +132,10 @@ view { conversations } =
     layout
         { sidebar =
             Element.column
-                []
-                [ Element.column [ Element.spacing 10 ] [ sidebarTitle "Channels", channelsList conversations ] ]
+                [ Element.spacing 20 ]
+                [ Element.column [ Element.spacing 10 ] [ sidebarTitle "Channels", channelsList conversations ]
+                , Element.column [ Element.spacing 10 ] [ sidebarTitle "Direct Messages", directMessagesList conversations ]
+                ]
         , header = Element.none
         , chat = Element.none
         , editor = Element.none
@@ -104,7 +153,12 @@ update msg model =
 init : Model
 init =
     { conversations =
-        [ Channel "general", Channel "random", Channel "cats" ]
+        [ Channel "general"
+        , Channel "random"
+        , Channel "cats"
+        , DirectMessage { fullName = "Leo Tolstoy", username = "leo", status = Online }
+        , DirectMessage { fullName = "Frida Kalo", username = "frida", status = Offline }
+        ]
     }
 
 
