@@ -11,8 +11,13 @@ type Msg
     = DoNothing
 
 
+type Conversation
+    = Channel String
+
+
 type alias Model =
-    ()
+    { conversations : List Conversation
+    }
 
 
 sidebarBgColor : Element.Color
@@ -25,6 +30,23 @@ sidebarFontColor =
     Element.rgb255 195 179 195
 
 
+sidebarTitle : String -> Element Msg
+sidebarTitle title =
+    Element.el
+        [ Element.Font.regular ]
+        (Element.text title)
+
+
+channelsList : List Conversation -> Element Msg
+channelsList all =
+    all
+        |> List.map
+            (\(Channel channel) ->
+                Element.row [ Element.pointer ] [ Element.el [ Element.alpha 0.7 ] (Element.text "# "), Element.text channel ]
+            )
+        |> Element.column [ Element.spacing 5 ]
+
+
 layout : { sidebar : Element Msg, header : Element Msg, chat : Element Msg, editor : Element Msg } -> Element Msg
 layout content =
     let
@@ -34,6 +56,8 @@ layout content =
                 , Element.height Element.fill
                 , Element.Background.color sidebarBgColor
                 , Element.Font.color sidebarFontColor
+                , Element.Font.light
+                , Element.padding 15
                 ]
                 content.sidebar
 
@@ -57,8 +81,17 @@ layout content =
 
 
 view : Model -> Html Msg
-view _ =
-    Element.layout [] (layout { sidebar = Element.none, header = Element.none, chat = Element.none, editor = Element.none })
+view { conversations } =
+    layout
+        { sidebar =
+            Element.column
+                []
+                [ Element.column [ Element.spacing 10 ] [ sidebarTitle "Channels", channelsList conversations ] ]
+        , header = Element.none
+        , chat = Element.none
+        , editor = Element.none
+        }
+        |> Element.layout []
 
 
 update : Msg -> Model -> Model
@@ -68,10 +101,17 @@ update msg model =
             model
 
 
+init : Model
+init =
+    { conversations =
+        [ Channel "general", Channel "random", Channel "cats" ]
+    }
+
+
 main : Program () Model Msg
 main =
     Browser.sandbox
-        { init = ()
+        { init = init
         , view = view
         , update = update
         }
