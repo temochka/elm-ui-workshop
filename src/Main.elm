@@ -1,6 +1,7 @@
 module Main exposing (main)
 
 import Browser
+import Element exposing (Element)
 import Html exposing (Html)
 
 
@@ -14,7 +15,7 @@ type alias Model =
 
 view : Model -> Html Msg
 view _ =
-    Html.p [] [ Html.text "Basic Elm app" ]
+    Element.layout [] (Element.paragraph [] [ Element.text "Basic Elm app" ])
 
 
 update : Msg -> Model -> Model
