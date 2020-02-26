@@ -5,6 +5,7 @@ import Element exposing (Element)
 import Element.Background
 import Element.Border
 import Element.Font
+import Element.Input
 import Html exposing (Html)
 
 
@@ -36,8 +37,17 @@ type alias OpenConversation =
     }
 
 
+type alias Chat =
+    { conversation : Conversation
+    , participantsCount : Int
+    , favorite : Bool
+    , topic : Maybe String
+    }
+
+
 type alias Model =
     { openConversations : List OpenConversation
+    , chat : Chat
     }
 
 
@@ -68,6 +78,26 @@ notificationBadgeColor =
 notificationBadgeFontColor : Element.Color
 notificationBadgeFontColor =
     Element.rgb255 255 255 255
+
+
+headerTextColor : Element.Color
+headerTextColor =
+    Element.rgb255 116 116 116
+
+
+headerTitleColor : Element.Color
+headerTitleColor =
+    Element.rgb255 22 21 22
+
+
+starColor : Element.Color
+starColor =
+    Element.rgb255 238 189 53
+
+
+lightBorderColor : Element.Color
+lightBorderColor =
+    Element.rgb255 173 172 173
 
 
 sidebarTitle : String -> Element Msg
@@ -160,6 +190,80 @@ directMessagesList conversations =
         |> Element.column [ Element.spacing 5 ]
 
 
+chatHeader : Chat -> Element Msg
+chatHeader chat =
+    let
+        title =
+            case chat.conversation of
+                Channel name ->
+                    "#" ++ name
+
+                DirectMessage user ->
+                    user.username
+
+        favorite =
+            (if chat.favorite then
+                Element.el [ Element.Font.color starColor ] (Element.text "★")
+
+             else
+                Element.text "☆"
+            )
+                |> Element.el [ Element.pointer ]
+
+        participants =
+            case chat.conversation of
+                Channel _ ->
+                    Element.text ("👤" ++ String.fromInt chat.participantsCount)
+
+                _ ->
+                    Element.none
+
+        topic =
+            chat.topic
+                |> Maybe.withDefault
+                    (case chat.conversation of
+                        Channel name ->
+                            name
+
+                        DirectMessage user ->
+                            user.fullName
+                    )
+                |> Element.text
+
+        meta =
+            Element.column [ Element.width Element.fill, Element.spacing 5 ]
+                [ Element.el [ Element.Font.regular, Element.Font.color headerTitleColor ] (Element.text title)
+                , [ favorite, participants, topic ]
+                    |> List.filter ((/=) Element.none)
+                    |> List.intersperse (Element.el [ Element.paddingXY 5 0 ] (Element.text "|"))
+                    |> Element.row [ Element.Font.color headerTextColor, Element.Font.size 12 ]
+                ]
+
+        search =
+            Element.Input.search
+                [ Element.width (Element.fill |> Element.minimum 170 |> Element.maximum 300)
+                , Element.height (Element.px 35)
+                , Element.Font.size 14
+                , Element.Border.solid
+                , Element.Border.width 1
+                , Element.Border.rounded 3
+                , Element.Border.color lightBorderColor
+                , Element.centerY
+                ]
+                { onChange = \_ -> DoNothing
+                , text = ""
+                , placeholder = Just (Element.Input.placeholder [] (Element.text "Search"))
+                , label = Element.Input.labelHidden "Search"
+                }
+    in
+    Element.row
+        [ Element.width Element.fill
+        ]
+        [ meta
+        , search
+        ]
+
+
 layout : { sidebar : Element Msg, header : Element Msg, chat : Element Msg, editor : Element Msg } -> Element Msg
 layout content =
     let
@@ -194,7 +298,7 @@ layout content =
 
 
 view : Model -> Html Msg
-view { openConversations } =
+view { openConversations, chat } =
     layout
         { sidebar =
             Element.column
@@ -202,7 +306,7 @@ view { openConversations } =
                 [ Element.column [ Element.spacing 10, Element.width Element.fill ] [ sidebarTitle "Channels", channelsList openConversations ]
                 , Element.column [ Element.spacing 10, Element.width Element.fill ] [ sidebarTitle "Direct Messages", directMessagesList openConversations ]
                 ]
-        , header = Element.none
+        , header = chatHeader chat
         , chat = Element.none
         , editor = Element.none
         }
@@ -225,6 +329,12 @@ init =
         , { kind = DirectMessage { fullName = "Leo Tolstoy", username = "leo", status = Online }, unreadCount = 3, mentionsCount = 0 }
         , { kind = DirectMessage { fullName = "Frida Kalo", username = "frida", status = Offline }, unreadCount = 0, mentionsCount = 0 }
         ]
+    , chat =
+        { conversation = Channel "cats"
+        , participantsCount = 42
+        , favorite = False
+        , topic = Just "🐱 Post your favorite cat pictures! 🐱"
+        }
     }
 
 
