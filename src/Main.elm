@@ -100,6 +100,11 @@ lightBorderColor =
     Element.rgb255 173 172 173
 
 
+darkBorderColor : Element.Color
+darkBorderColor =
+    Element.rgb255 77 77 77
+
+
 sidebarTitle : String -> Element Msg
 sidebarTitle title =
     Element.el
@@ -264,6 +269,31 @@ chatHeader chat =
         ]
 
 
+messageEditor : Chat -> Element Msg
+messageEditor chat =
+    let
+        conversationName =
+            case chat.conversation of
+                Channel name ->
+                    "#" ++ name
+
+                DirectMessage user ->
+                    user.username
+
+        placeholder =
+            "Message " ++ conversationName
+    in
+    Element.Input.text
+        [ Element.Border.color darkBorderColor
+        , Element.width Element.fill
+        ]
+        { label = Element.Input.labelHidden placeholder
+        , placeholder = Just (Element.Input.placeholder [] (Element.text placeholder))
+        , onChange = \_ -> DoNothing
+        , text = ""
+        }
+
+
 layout : { sidebar : Element Msg, header : Element Msg, chat : Element Msg, editor : Element Msg } -> Element Msg
 layout content =
     let
@@ -308,7 +338,7 @@ view { openConversations, chat } =
                 ]
         , header = chatHeader chat
         , chat = Element.none
-        , editor = Element.none
+        , editor = messageEditor chat
         }
         |> Element.layout []
 
