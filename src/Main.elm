@@ -126,6 +126,7 @@ notificationsBadge attributes count =
         (attributes
             ++ [ Element.Background.color notificationBadgeColor
                , Element.Font.color notificationBadgeFontColor
+               , Element.Font.size 13
                , Element.paddingXY 10 0
                , Element.Border.rounded 10
                ]
@@ -245,7 +246,7 @@ chatHeader chat =
 
         meta =
             Element.column [ Element.width Element.fill, Element.spacing 5 ]
-                [ Element.el [ Element.Font.regular, Element.Font.color headerTitleColor ] (Element.text title)
+                [ Element.el [ Element.Font.semiBold, Element.Font.color headerTitleColor ] (Element.text title)
                 , [ favorite, participants, topic ]
                     |> List.filter ((/=) Element.none)
                     |> List.intersperse (Element.el [ Element.paddingXY 5 0 ] (Element.text "|"))
@@ -261,7 +262,6 @@ chatHeader chat =
                 , Element.Border.width 1
                 , Element.Border.rounded 3
                 , Element.Border.color lightBorderColor
-                , Element.centerY
                 ]
                 { onChange = \_ -> DoNothing
                 , text = ""
@@ -289,13 +289,13 @@ chatMessage message =
             Element.el [ Element.Font.semiBold ] (Element.text message.author.username)
 
         timestamp =
-            Element.el [ Element.Font.color headerTextColor ] (Element.text "3:52pm")
+            Element.el [ Element.Font.color headerTextColor, Element.Font.size 12 ] (Element.text "3:52pm")
     in
     Element.row [ Element.alignBottom, Element.width Element.fill, Element.spacing 5 ]
         [ avatar
         , Element.column
-            [ Element.width Element.fill ]
-            [ Element.row [ Element.spacing 5 ] [ username, timestamp ]
+            [ Element.width Element.fill, Element.spacing 5 ]
+            [ Element.paragraph [] [ username, Element.text " ", timestamp ]
             , Element.paragraph [ Element.width Element.fill, Element.Font.color (Element.rgb255 22 22 22) ] [ Element.text message.text ]
             ]
         ]
@@ -305,7 +305,7 @@ chatMessages : List Message -> Element Msg
 chatMessages messages =
     messages
         |> List.map chatMessage
-        |> Element.column [ Element.width Element.fill, Element.height Element.fill, Element.spacing 5 ]
+        |> Element.column [ Element.width Element.fill, Element.height Element.fill, Element.spacing 10 ]
 
 
 messageEditor : Chat -> Element Msg
@@ -356,7 +356,7 @@ layout content =
         editor =
             Element.el [ Element.width Element.fill, Element.height (Element.px 70), Element.paddingXY 0 10 ] content.editor
     in
-    Element.row [ Element.width Element.fill, Element.height Element.fill ]
+    Element.row [ Element.width Element.fill, Element.height Element.fill, Element.Font.size 15 ]
         [ sidebar
         , Element.column [ Element.width Element.fill, Element.height Element.fill, Element.padding 15 ]
             [ header
