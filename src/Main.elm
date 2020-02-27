@@ -354,11 +354,11 @@ layout content =
             Element.el [ Element.width Element.fill, Element.height Element.fill ] content.chat
 
         editor =
-            Element.el [ Element.width Element.fill, Element.height (Element.px 70) ] content.editor
+            Element.el [ Element.width Element.fill, Element.height (Element.px 70), Element.paddingXY 0 10 ] content.editor
     in
-    Element.row [ Element.width Element.fill, Element.height Element.fill, Element.explain Debug.todo ]
+    Element.row [ Element.width Element.fill, Element.height Element.fill ]
         [ sidebar
-        , Element.column [ Element.width Element.fill, Element.height Element.fill, Element.explain Debug.todo ]
+        , Element.column [ Element.width Element.fill, Element.height Element.fill, Element.padding 15 ]
             [ header
             , chat
             , editor
