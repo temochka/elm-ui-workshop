@@ -37,11 +37,19 @@ type alias OpenConversation =
     }
 
 
+type alias Message =
+    { text : String
+    , reactions : List ( Char, Int )
+    , author : User
+    }
+
+
 type alias Chat =
     { conversation : Conversation
     , participantsCount : Int
     , favorite : Bool
     , topic : Maybe String
+    , messages : List Message
     }
 
 
@@ -269,6 +277,37 @@ chatHeader chat =
         ]
 
 
+chatMessage : Message -> Element Msg
+chatMessage message =
+    let
+        avatar =
+            Element.el
+                [ Element.width (Element.px 40), Element.height (Element.px 40), Element.Background.color (Element.rgb255 0 0 0) ]
+                Element.none
+
+        username =
+            Element.el [ Element.Font.semiBold ] (Element.text message.author.username)
+
+        timestamp =
+            Element.el [ Element.Font.color headerTextColor ] (Element.text "3:52pm")
+    in
+    Element.row [ Element.alignBottom, Element.width Element.fill, Element.spacing 5 ]
+        [ avatar
+        , Element.column
+            [ Element.width Element.fill ]
+            [ Element.row [ Element.spacing 5 ] [ username, timestamp ]
+            , Element.paragraph [ Element.width Element.fill, Element.Font.color (Element.rgb255 22 22 22) ] [ Element.text message.text ]
+            ]
+        ]
+
+
+chatMessages : List Message -> Element Msg
+chatMessages messages =
+    messages
+        |> List.map chatMessage
+        |> Element.column [ Element.width Element.fill, Element.height Element.fill, Element.spacing 5 ]
+
+
 messageEditor : Chat -> Element Msg
 messageEditor chat =
     let
@@ -337,7 +376,7 @@ view { openConversations, chat } =
                 , Element.column [ Element.spacing 10, Element.width Element.fill ] [ sidebarTitle "Direct Messages", directMessagesList openConversations ]
                 ]
         , header = chatHeader chat
-        , chat = Element.none
+        , chat = chatMessages chat.messages
         , editor = messageEditor chat
         }
         |> Element.layout []
@@ -352,18 +391,43 @@ update msg model =
 
 init : Model
 init =
+    let
+        leoTolstoy =
+            { fullName = "Leo Tolstoy", username = "leo", status = Online }
+
+        fridaKahlo =
+            { fullName = "Frida Kalo", username = "frida", status = Offline }
+    in
     { openConversations =
         [ { kind = Channel "general", unreadCount = 20, mentionsCount = 1 }
         , { kind = Channel "random", unreadCount = 1, mentionsCount = 0 }
         , { kind = Channel "cats", unreadCount = 0, mentionsCount = 0 }
-        , { kind = DirectMessage { fullName = "Leo Tolstoy", username = "leo", status = Online }, unreadCount = 3, mentionsCount = 0 }
-        , { kind = DirectMessage { fullName = "Frida Kalo", username = "frida", status = Offline }, unreadCount = 0, mentionsCount = 0 }
+        , { kind = DirectMessage leoTolstoy, unreadCount = 3, mentionsCount = 0 }
+        , { kind = DirectMessage fridaKahlo, unreadCount = 0, mentionsCount = 0 }
         ]
     , chat =
         { conversation = Channel "cats"
         , participantsCount = 42
         , favorite = False
         , topic = Just "🐱 Post your favorite cat pictures! 🐱"
+        , messages =
+            [ { author = leoTolstoy
+              , text = "Everyone thinks of changing the world, but no one thinks of changing himself."
+              , reactions = [ ( '👍', 17 ) ]
+              }
+            , { author = leoTolstoy
+              , text = "The sole meaning of life is to serve humanity."
+              , reactions = []
+              }
+            , { author = leoTolstoy
+              , text = "⬇️🎤⬇️"
+              , reactions = [ ( '😂', 80 ) ]
+              }
+            , { author = fridaKahlo
+              , text = "I hope the leaving is joyful; and I hope never to return."
+              , reactions = [ ( '⬆', 3 ) ]
+              }
+            ]
         }
     }
 
